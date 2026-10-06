@@ -1,13 +1,14 @@
-import { Activity as ActivityIcon, ExternalLink, FileCheck2 } from "lucide-react";
+import { Activity as ActivityIcon } from "lucide-react";
 import Link from "next/link";
 import { getEngine } from "@/lib/data/workspace";
 import { ACTIVITY_MODES, ACTIVITY_TYPES } from "@/lib/domain";
-import { addDays, formatDate } from "@/lib/dates";
-import { EVIDENCE_LABEL, MODE_LABEL, TYPE_LABEL, fmtHours } from "@/lib/format";
+import { addDays } from "@/lib/dates";
+import { MODE_LABEL, TYPE_LABEL, fmtHours } from "@/lib/format";
 import { QuickAddButton } from "@/components/app/quick-add";
-import { AddEvidenceButton, EditEvidenceButton } from "@/components/forms/evidence-form";
+import { AddEvidenceButton } from "@/components/forms/evidence-form";
 import { ActivityList } from "@/components/progress/activity-list";
 import { ConsistencyCalendar, ConsistencyStats, WeeklyHours } from "@/components/progress/consistency";
+import { EvidenceList } from "@/components/progress/evidence-list";
 import { EmptyState, PageHeader, Section } from "@/components/ui/display";
 import { cn } from "@/components/ui/cn";
 
@@ -137,30 +138,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
 
       <Section id="evidence" title="Evidence" description="Proof that supports your scores. Output (repos, deployments, results) weighs most." actions={<AddEvidenceButton />}>
         {evidence.length ? (
-          <ul className="divide-y divide-line border-y border-line">
-            {evidence.map((e) => (
-              <li key={e.id} className="flex items-start gap-3 py-2.5">
-                <FileCheck2 size={15} className="mt-0.5 shrink-0 text-good" aria-hidden />
-                <div className="min-w-0 flex-1">
-                  <p className="text-[14px] leading-snug">
-                    {e.url ? (
-                      <a href={e.url} target="_blank" rel="noopener noreferrer" className="hover:text-accent-strong">
-                        {e.title} <ExternalLink size={12} className="inline text-faint" aria-hidden />
-                      </a>
-                    ) : (
-                      e.title
-                    )}
-                  </p>
-                  <p className="text-[12px] text-faint">
-                    {EVIDENCE_LABEL[e.kind]}
-                    {e.assessmentScore != null ? ` · score ${e.assessmentScore}` : ""} · {formatDate(e.occurredOn, { year: true })}
-                    {e.skillIds.length ? ` · ${e.skillIds.map((id) => a.skillById.get(id)?.skill.name).filter(Boolean).join(", ")}` : ""}
-                  </p>
-                </div>
-                <EditEvidenceButton evidence={e} />
-              </li>
-            ))}
-          </ul>
+          <EvidenceList items={evidence} skillName={Object.fromEntries(ws.skills.map((s) => [s.id, s.name]))} />
         ) : (
           <p className="text-[13px] text-muted">No evidence yet.</p>
         )}

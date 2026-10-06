@@ -101,8 +101,7 @@ export function LineChart({
       <svg
         width={width}
         height={height}
-        role="img"
-        aria-label={ariaLabel}
+        aria-hidden
         className="absolute inset-0 block touch-pan-y"
         onPointerMove={(e) => onMove(e.clientX, e.currentTarget.getBoundingClientRect())}
         onPointerDown={(e) => onMove(e.clientX, e.currentTarget.getBoundingClientRect())}
@@ -157,6 +156,30 @@ export function LineChart({
           </g>
         ) : null}
       </svg>
+      <table className="sr-only">
+        <caption>{ariaLabel}</caption>
+        <thead>
+          <tr>
+            <th scope="col">Date</th>
+            {series.map((s) => (
+              <th key={s.key} scope="col">
+                {s.label}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {dates.map((d) => (
+            <tr key={d}>
+              <th scope="row">{formatDate(d, { year: true })}</th>
+              {series.map((s) => {
+                const p = s.points.find((pt) => pt.date === d);
+                return <td key={s.key}>{p ? formatValue(p.value, valueFormat) : "—"}</td>;
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
       {hd ? (
         <div
           className="pointer-events-none absolute top-0 z-10 w-[168px] rounded-md border border-line-strong bg-panel-2 px-2.5 py-2 text-[12px] shadow-[var(--shadow)]"

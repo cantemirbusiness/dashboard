@@ -4,7 +4,7 @@ import { formatDate } from "@/lib/dates";
 import { GoalStatusBadge } from "@/components/ui/status";
 import { Meter } from "@/components/ui/display";
 
-const STATUS_COLOR = {
+export const GOAL_STATUS_COLOR = {
   on_track: "var(--good)",
   at_risk: "var(--warning)",
   behind: "var(--critical)",
@@ -25,7 +25,7 @@ export function GoalRow({ g }: { g: GoalAnalysis }) {
         <span className="min-w-0 text-[14px] font-medium leading-snug">{g.goal.title}</span>
         <GoalStatusBadge status={g.status} className="mt-0.5" />
       </div>
-      <Meter value={g.progress * 100} color={STATUS_COLOR[g.status]} className="mt-2" label={`${g.goal.title} progress`} />
+      <Meter value={g.progress * 100} color={GOAL_STATUS_COLOR[g.status]} className="mt-2" label={`${g.goal.title} progress`} />
       <div className="mt-1.5 flex flex-wrap justify-between gap-x-3 text-[12px] text-faint">
         <span className="tabular">
           {fmtGoalValue(g, g.current)} / {fmtGoalValue(g, g.target)}

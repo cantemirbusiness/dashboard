@@ -6,6 +6,7 @@ import { cn } from "./cn";
 // Status is always icon + label + color — never color alone.
 
 const SKILL: Record<SkillStatus, { label: string; color: string; Icon: typeof CircleDot }> = {
+  not_started: { label: "Not started", color: "text-faint", Icon: CircleDot },
   improving: { label: "Improving", color: "text-good", Icon: TrendingUp },
   stable: { label: "Stable", color: "text-muted", Icon: Minus },
   stagnating: { label: "Stagnating", color: "text-warning", Icon: PauseCircle },

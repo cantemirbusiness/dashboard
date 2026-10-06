@@ -1,13 +1,13 @@
-import { ExternalLink, FileCheck2 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getEngine } from "@/lib/data/workspace";
 import { formatDate, relativeDay } from "@/lib/dates";
-import { EVIDENCE_LABEL, fmtHours, fmtScore } from "@/lib/format";
+import { fmtHours, fmtScore } from "@/lib/format";
 import { QuickAddButton } from "@/components/app/quick-add";
-import { AddEvidenceButton, EditEvidenceButton } from "@/components/forms/evidence-form";
+import { AddEvidenceButton } from "@/components/forms/evidence-form";
 import { AddMilestoneButton, MilestoneItem } from "@/components/forms/goal-forms";
 import { EditProjectButton, TrackSlider } from "@/components/forms/project-forms";
+import { EvidenceList } from "@/components/progress/evidence-list";
 import { ActivityList } from "@/components/progress/activity-list";
 import { Meter, Section, Stat } from "@/components/ui/display";
 import { GoalStatusBadge, ProjectStatusBadge } from "@/components/ui/status";
@@ -123,28 +123,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         <Section title="Output & evidence" actions={<AddEvidenceButton projectId={id} label="Add" variant="ghost" />}>
           {proj.output ? <p className="mb-3 text-[13px] text-muted">{proj.output}</p> : null}
           {p.evidence.length ? (
-            <ul className="divide-y divide-line border-y border-line">
-              {p.evidence.map((e) => (
-                <li key={e.id} className="flex items-start gap-3 py-2.5">
-                  <FileCheck2 size={15} className="mt-0.5 shrink-0 text-good" aria-hidden />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[14px]">
-                      {e.url ? (
-                        <a href={e.url} target="_blank" rel="noopener noreferrer" className="hover:text-accent-strong">
-                          {e.title} <ExternalLink size={12} className="inline text-faint" aria-hidden />
-                        </a>
-                      ) : (
-                        e.title
-                      )}
-                    </p>
-                    <p className="text-[12px] text-faint">
-                      {EVIDENCE_LABEL[e.kind]} · {formatDate(e.occurredOn, { year: true })}
-                    </p>
-                  </div>
-                  <EditEvidenceButton evidence={e} />
-                </li>
-              ))}
-            </ul>
+            <EvidenceList items={p.evidence} />
           ) : (
             <p className="text-[13px] text-muted">No evidence yet. A repository, deployment or demo makes this project count as demonstrated output.</p>
           )}

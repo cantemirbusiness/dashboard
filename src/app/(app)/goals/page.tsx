@@ -6,14 +6,13 @@ import { formatDate } from "@/lib/dates";
 import { fmtScore } from "@/lib/format";
 import { LineChart } from "@/components/charts/line-chart";
 import { AddGoalButton, AddMilestoneButton, EditGoalButton, GoalValueUpdater, MilestoneItem } from "@/components/forms/goal-forms";
-import { fmtGoalValue } from "@/components/progress/goal-row";
+import { fmtGoalValue, GOAL_STATUS_COLOR } from "@/components/progress/goal-row";
 import { EmptyState, Meter, PageHeader, Section } from "@/components/ui/display";
 import { GoalStatusBadge } from "@/components/ui/status";
 import { cn } from "@/components/ui/cn";
 
 export const metadata = { title: "Goals" };
 
-const STATUS_COLOR = { on_track: "var(--good)", at_risk: "var(--warning)", behind: "var(--critical)", completed: "var(--accent)", abandoned: "var(--fg-faint)" } as const;
 
 export default async function GoalsPage() {
   const { engine } = await getEngine();
@@ -113,7 +112,7 @@ function GoalList({ goals, today, skillName }: { goals: GoalAnalysis[]; today: s
                   <span>Progress</span>
                   <span className="tabular">{Math.round(g.progress * 100)}%</span>
                 </div>
-                <Meter value={g.progress * 100} color={STATUS_COLOR[g.status]} label="Progress" />
+                <Meter value={g.progress * 100} color={GOAL_STATUS_COLOR[g.status]} label="Progress" />
               </div>
               {g.timeElapsed != null ? (
                 <div>
