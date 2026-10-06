@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useState, useTransition } from "react";
-import { sendMagicLink, signIn, signUp } from "@/lib/actions/auth";
+import { resendConfirmation, sendMagicLink, signIn, signUp } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
 import { TextInput } from "@/components/ui/fields";
+
+type Notice = { tone: "info" | "warn"; text: string; action?: "resend" | "signin" };
 
 export function AuthForm({ mode, next, linkError }: { mode: "login" | "signup"; next?: string; linkError?: boolean }) {
   const [email, setEmail] = useState("");
@@ -12,25 +14,56 @@ export function AuthForm({ mode, next, linkError }: { mode: "login" | "signup"; 
   const [magic, setMagic] = useState(false);
   const [error, setError] = useState<string | null>(linkError ? "That sign-in link is invalid or has expired. Request a new one." : null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [notice, setNotice] = useState<string | null>(null);
+  const [notice, setNotice] = useState<Notice | null>(null);
+  const [canResend, setCanResend] = useState(false);
   const [pending, start] = useTransition();
+
+  const reset = () => {
+    setError(null);
+    setFieldErrors({});
+    setNotice(null);
+  };
 
   const submit = () =>
     start(async () => {
-      setError(null);
-      setFieldErrors({});
-      setNotice(null);
-      const res =
-        mode === "signup" ? await signUp({ email, password }) : magic ? await sendMagicLink({ email, next }) : await signIn({ email, password, next });
-      if (!res) return;
+      reset();
+      if (mode === "signup") {
+        const res = await signUp({ email, password });
+        if (!res) return; // redirected
+        if (!res.ok) {
+          setError(res.error);
+          setFieldErrors(res.fieldErrors ?? {});
+        } else if (res.data?.status === "exists") {
+          setNotice({ tone: "warn", text: "An account with this email already exists. Sign in instead — or reset your password if you don't remember it.", action: "signin" });
+        } else {
+          setNotice({ tone: "info", text: `We sent a confirmation link to ${email}. Open it on any device to finish signing up.` });
+          setCanResend(true);
+        }
+        return;
+      }
+      if (magic) {
+        const res = await sendMagicLink({ email, next });
+        if (!res.ok) {
+          setError(res.error);
+          setFieldErrors(res.fieldErrors ?? {});
+        } else setNotice({ tone: "info", text: "If an account exists for that email, a sign-in link is on its way." });
+        return;
+      }
+      const res = await signIn({ email, password, next });
+      if (!res) return; // redirected
       if (!res.ok) {
         setError(res.error);
         setFieldErrors(res.fieldErrors ?? {});
-      } else if (mode === "signup") {
-        setNotice("Check your inbox to confirm your email, then sign in.");
-      } else if (magic) {
-        setNotice("If an account exists for that email, a sign-in link is on its way.");
+        if (/confirm/i.test(res.error)) setCanResend(true);
       }
+    });
+
+  const resend = () =>
+    start(async () => {
+      reset();
+      const res = await resendConfirmation({ email });
+      if (!res.ok) setError(res.error);
+      else setNotice({ tone: "info", text: `If ${email} still needs confirming, a new link is on its way.` });
     });
 
   return (
@@ -51,7 +84,15 @@ export function AuthForm({ mode, next, linkError }: { mode: "login" | "signup"; 
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           error={fieldErrors.password}
-          hint={mode === "signup" ? "At least 8 characters." : undefined}
+          hint={
+            mode === "signup" ? (
+              "At least 8 characters."
+            ) : (
+              <Link href="/forgot-password" className="hover:text-fg">
+                Forgot password?
+              </Link>
+            )
+          }
           required
           minLength={8}
         />
@@ -62,13 +103,28 @@ export function AuthForm({ mode, next, linkError }: { mode: "login" | "signup"; 
         </p>
       ) : null}
       {notice ? (
-        <p className="rounded-md border border-line bg-panel-2 px-3 py-2 text-[13px] text-muted" role="status">
-          {notice}
-        </p>
+        <div className={`rounded-md border px-3 py-2 text-[13px] ${notice.tone === "warn" ? "border-warning/50 text-fg" : "border-line bg-panel-2 text-muted"}`} role="status">
+          {notice.text}
+          {notice.action === "signin" ? (
+            <span className="mt-2 flex gap-3">
+              <Link href="/login" className="font-medium text-accent hover:underline">
+                Sign in
+              </Link>
+              <Link href="/forgot-password" className="text-accent hover:underline">
+                Reset password
+              </Link>
+            </span>
+          ) : null}
+        </div>
       ) : null}
       <Button type="submit" variant="primary" loading={pending}>
         {mode === "signup" ? "Create account" : magic ? "Email me a sign-in link" : "Sign in"}
       </Button>
+      {canResend && email ? (
+        <Button variant="ghost" onClick={resend} disabled={pending}>
+          Resend confirmation email
+        </Button>
+      ) : null}
       {mode === "login" ? (
         <button type="button" onClick={() => setMagic((m) => !m)} className="text-[13px] text-muted hover:text-fg">
           {magic ? "Use a password instead" : "Email me a sign-in link instead"}

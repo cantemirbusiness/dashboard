@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseEnv, isPreviewMode } from "./env";
 
-const PUBLIC_PATHS = ["/login", "/signup", "/auth", "/setup"];
+const PUBLIC_PATHS = ["/login", "/signup", "/forgot-password", "/auth", "/setup"];
 
 /**
  * Refreshes the Supabase session cookie on every request and redirects
