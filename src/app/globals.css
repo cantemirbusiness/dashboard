@@ -1,0 +1,208 @@
+@import "tailwindcss";
+
+/* Theme: dark is the default. `data-theme` on <html> is set from a cookie
+   ("dark" | "light" | "system"); "system" follows the OS. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #1a1a1a;
+  --bg-sidebar: #151515;
+  --panel: #1f1f1f;
+  --panel-2: #262626;
+  --hover: #2a2a2a;
+  --border: #2d2d2d;
+  --border-strong: #3b3b3b;
+  --fg: #dcdcdc;
+  --fg-muted: #a1a1a1;
+  --fg-faint: #6f6f6f;
+  --accent: #a091f7;
+  --accent-strong: #b6a9ff;
+  --accent-fg: #121018;
+  --accent-soft: rgb(160 145 247 / 0.13);
+  --focus: rgb(160 145 247 / 0.55);
+
+  /* Status (fixed, always paired with an icon + label) */
+  --good: #3fae5a;
+  --warning: #e0a526;
+  --serious: #ec835a;
+  --critical: #e05a5a;
+
+  /* Categorical series (validated dark steps) */
+  --s-blue: #3987e5;
+  --s-orange: #d95926;
+  --s-aqua: #199e70;
+  --s-yellow: #c98500;
+  --s-magenta: #d55181;
+  --s-green: #2f9a2f;
+  --s-violet: #9085e9;
+  --s-red: #e66767;
+  --s-slate: #8a8f98;
+
+  --grid: #2a2a2a;
+  --cal-0: #232323;
+  --shadow: 0 10px 30px rgb(0 0 0 / 0.45);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #ffffff;
+  --bg-sidebar: #f6f6f5;
+  --panel: #ffffff;
+  --panel-2: #f4f4f3;
+  --hover: #efefee;
+  --border: #e7e7e5;
+  --border-strong: #d5d5d2;
+  --fg: #1d1d1d;
+  --fg-muted: #57575a;
+  --fg-faint: #8b8b8f;
+  --accent: #6a58e0;
+  --accent-strong: #5442cc;
+  --accent-fg: #ffffff;
+  --accent-soft: rgb(106 88 224 / 0.1);
+  --focus: rgb(106 88 224 / 0.45);
+
+  --good: #0c8f2a;
+  --warning: #b77900;
+  --serious: #d4673d;
+  --critical: #c53434;
+
+  --s-blue: #2a78d6;
+  --s-orange: #eb6834;
+  --s-aqua: #1baf7a;
+  --s-yellow: #eda100;
+  --s-magenta: #e87ba4;
+  --s-green: #008300;
+  --s-violet: #4a3aa7;
+  --s-red: #e34948;
+  --s-slate: #6b7280;
+
+  --grid: #ececea;
+  --cal-0: #efefed;
+  --shadow: 0 10px 30px rgb(0 0 0 / 0.12);
+}
+
+@media (prefers-color-scheme: light) {
+  :root[data-theme="system"] {
+    color-scheme: light;
+    --bg: #ffffff;
+    --bg-sidebar: #f6f6f5;
+    --panel: #ffffff;
+    --panel-2: #f4f4f3;
+    --hover: #efefee;
+    --border: #e7e7e5;
+    --border-strong: #d5d5d2;
+    --fg: #1d1d1d;
+    --fg-muted: #57575a;
+    --fg-faint: #8b8b8f;
+    --accent: #6a58e0;
+    --accent-strong: #5442cc;
+    --accent-fg: #ffffff;
+    --accent-soft: rgb(106 88 224 / 0.1);
+    --focus: rgb(106 88 224 / 0.45);
+    --good: #0c8f2a;
+    --warning: #b77900;
+    --serious: #d4673d;
+    --critical: #c53434;
+    --s-blue: #2a78d6;
+    --s-orange: #eb6834;
+    --s-aqua: #1baf7a;
+    --s-yellow: #eda100;
+    --s-magenta: #e87ba4;
+    --s-green: #008300;
+    --s-violet: #4a3aa7;
+    --s-red: #e34948;
+    --s-slate: #6b7280;
+    --grid: #ececea;
+    --cal-0: #efefed;
+    --shadow: 0 10px 30px rgb(0 0 0 / 0.12);
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-sidebar: var(--bg-sidebar);
+  --color-panel: var(--panel);
+  --color-panel-2: var(--panel-2);
+  --color-hover: var(--hover);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-fg: var(--fg);
+  --color-muted: var(--fg-muted);
+  --color-faint: var(--fg-faint);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-good: var(--good);
+  --color-warning: var(--warning);
+  --color-serious: var(--serious);
+  --color-critical: var(--critical);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  background: var(--bg);
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  font-feature-settings: "cv11", "ss01";
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--accent-soft);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Native <dialog> as modal / mobile bottom sheet */
+dialog.sheet {
+  margin: auto;
+  padding: 0;
+  border: 1px solid var(--border-strong);
+  background: var(--panel);
+  color: var(--fg);
+  border-radius: 12px;
+  width: min(560px, calc(100vw - 32px));
+  max-height: min(88dvh, 860px);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+dialog.sheet::backdrop {
+  background: rgb(0 0 0 / 0.55);
+}
+@media (max-width: 639px) {
+  dialog.sheet {
+    margin: auto 0 0 0;
+    width: 100vw;
+    max-width: 100vw;
+    max-height: 92dvh;
+    border-radius: 14px 14px 0 0;
+    border-bottom: 0;
+  }
+}
+
+/* Range input */
+input[type="range"] {
+  accent-color: var(--accent);
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  scrollbar-width: none;
+}
