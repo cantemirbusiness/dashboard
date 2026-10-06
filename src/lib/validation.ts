@@ -22,7 +22,16 @@ const optText = (max: number) =>
 
 const id = z.uuid("Invalid id");
 const optId = z.preprocess(emptyToNull, id.nullable().optional()).transform((v) => v ?? null);
-const date = z.iso.date("Use a valid date");
+// Calendar dates must be plausible: not before 1970, and not more than a day in
+// the future (a day of slack covers every timezone's "today").
+const maxDate = () => new Date(Date.now() + 36 * 3600_000).toISOString().slice(0, 10);
+const date = z.iso
+  .date("Use a valid date")
+  .refine((d) => d >= "1970-01-01", "Use a date after 1970")
+  .refine((d) => d <= "2100-12-31", "Use a realistic date");
+/** A date on which something already happened. */
+const pastDate = date.refine((d) => d <= maxDate(), "This date is in the future");
+const optPastDate = z.preprocess(emptyToNull, pastDate.nullable().optional()).transform((v) => v ?? null);
 const optDate = z.preprocess(emptyToNull, date.nullable().optional()).transform((v) => v ?? null);
 const url = z
   .string()
@@ -36,7 +45,7 @@ const idList = (max: number) => z.array(id).max(max).default([]).transform((xs) 
 
 export const activitySchema = z.object({
   id: id.optional(),
-  occurredOn: date,
+  occurredOn: pastDate,
   title: text(160),
   description: optText(4000),
   type: z.enum(ACTIVITY_TYPES),
@@ -71,7 +80,7 @@ export const skillSchema = z
     description: optText(2000),
     baselineScore: score,
     targetScore: score,
-    trackedSince: date,
+    trackedSince: pastDate,
     archived: z.boolean().default(false),
   })
   .refine((s) => s.targetScore >= s.baselineScore, { message: "Target should be at least the starting level", path: ["targetScore"] });
@@ -86,7 +95,7 @@ export const projectSchema = z
     manualProgress: score.default(0),
     startDate: optDate,
     targetDate: optDate,
-    completedOn: optDate,
+    completedOn: optPastDate,
     output: optText(4000),
     notes: optText(8000),
     links: z.array(url).max(20).default([]),
@@ -137,7 +146,7 @@ export const milestoneSchema = z.object({
   projectId: optId,
   skillId: optId,
   dueOn: optDate,
-  achievedOn: optDate,
+  achievedOn: optPastDate,
   significance: z.coerce.number().int().min(1).max(3),
 });
 export type MilestoneInput = z.input<typeof milestoneSchema>;
@@ -150,7 +159,7 @@ export const evidenceSchema = z
     url: optUrl,
     description: optText(2000),
     assessmentScore: z.preprocess(emptyToNull, score.nullable().optional()).transform((v) => v ?? null),
-    occurredOn: date,
+    occurredOn: pastDate,
     projectId: optId,
     activityId: optId,
     milestoneId: optId,
@@ -162,7 +171,7 @@ export const evidenceSchema = z
   });
 export type EvidenceInput = z.input<typeof evidenceSchema>;
 
-function isValidTimeZone(tz: string) {
+export function isValidTimeZone(tz: string) {
   try {
     new Intl.DateTimeFormat("en", { timeZone: tz });
     return true;
@@ -173,7 +182,7 @@ function isValidTimeZone(tz: string) {
 
 export const profileSchema = z.object({
   displayName: optText(80),
-  timezone: z.string().trim().max(64).refine(isValidTimeZone, "Unknown timezone"),
+  timezone: z.string().trim().max(64).refine((tz) => isValidTimeZone(tz), "Unknown timezone"),
   weeklyHoursGoal: z.coerce.number().min(0).max(120),
 });
 export type ProfileInput = z.input<typeof profileSchema>;
@@ -193,3 +202,5 @@ export function fieldErrors(error: z.ZodError): Record<string, string> {
   }
   return out;
 }
+
+export const timezoneSchema = z.string().trim().max(64).refine(isValidTimeZone, "Unknown timezone");

@@ -3,6 +3,7 @@
 import type { EmailOtpType } from "@supabase/supabase-js";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { safeNext } from "@/lib/auth/redirect";
 import { createBrowserSupabase } from "@/lib/supabase/browser";
 import { Logo } from "@/components/app/shell";
 
@@ -12,9 +13,6 @@ type State =
   | { kind: "expired" }
   | { kind: "error"; message: string };
 
-function safeNext(next: string | null): string {
-  return next && next.startsWith("/") && !next.startsWith("//") ? next : "/";
-}
 
 /**
  * Landing page for every Supabase email link (sign-up confirmation, magic

@@ -57,7 +57,11 @@ export async function recordSnapshot({ supabase, userId }: Session) {
   if (error) console.error("[snapshot]", error);
 }
 
-/** Replace the rows of a join table for one parent. */
+/**
+ * Make a join table's rows for one parent match `childIds`.
+ * Adds first, then removes stale links: if a request fails half-way the
+ * record keeps its links instead of silently losing them all.
+ */
 export async function replaceLinks(
   session: Session,
   table: string,
@@ -67,11 +71,19 @@ export async function replaceLinks(
   childIds: string[],
 ) {
   const { supabase, userId } = session;
-  check(await supabase.from(table).delete().eq(parentKey, parentId).eq("user_id", userId), `update ${table}`);
   if (childIds.length) {
     check(
-      await supabase.from(table).insert(childIds.map((c) => ({ user_id: userId, [parentKey]: parentId, [childKey]: c }))),
+      await supabase
+        .from(table)
+        .upsert(
+          childIds.map((c) => ({ user_id: userId, [parentKey]: parentId, [childKey]: c })),
+          { onConflict: `${parentKey},${childKey}`, ignoreDuplicates: true },
+        ),
       `update ${table}`,
     );
   }
+  let stale = supabase.from(table).delete().eq(parentKey, parentId).eq("user_id", userId);
+  // childIds are validated UUIDs, so they are safe to embed in the filter list.
+  if (childIds.length) stale = stale.not(childKey, "in", `(${childIds.join(",")})`);
+  check(await stale, `update ${table}`);
 }

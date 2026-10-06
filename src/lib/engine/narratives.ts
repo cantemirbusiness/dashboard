@@ -83,6 +83,8 @@ export interface Weakness {
 export function computeWeaknesses(a: Analysis): Weakness[] {
   const out: Weakness[] = [];
   for (const s of a.skills) {
+    // Newly added skills haven't had a chance to move yet; don't flag them.
+    if (s.status === "not_started") continue;
     const href = `/skills/${s.skill.id}`;
     const goalLinked = s.weight > 1;
     const gap = s.skill.targetScore - s.score;
@@ -372,14 +374,15 @@ export function computeRecommendations(ws: Workspace, a: Analysis, limit = 3): R
   for (const s of a.skills) {
     if (!goalLinked(s)) continue;
     if (s.daysSinceActivity != null && s.daysSinceActivity <= STATUS.neglectedAfterDays) continue;
+    const fresh = s.status === "not_started";
     recs.push({
       key: `resume:${s.skill.id}`,
-      title: `Resume ${s.skill.name}`,
+      title: fresh ? `Start on ${s.skill.name}` : `Resume ${s.skill.name}`,
       impact: "medium",
       effort: "30–60 min",
       reason:
         s.daysSinceActivity == null
-          ? `${s.skill.name} supports an active goal but has no activity yet.`
+          ? `${s.skill.name} supports an active goal but has no activity yet. One focused session starts its score moving.`
           : `${s.skill.name} supports an active goal but hasn't been touched in ${s.daysSinceActivity} days; recent activity decays toward half weight.`,
       href: `/skills/${s.skill.id}`,
       priority: 60,

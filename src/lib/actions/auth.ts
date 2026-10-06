@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { safeNext } from "@/lib/auth/redirect";
 import { createEmailLinkClient } from "@/lib/supabase/email-links";
 import { createClient } from "@/lib/supabase/server";
 import { credentialsSchema, emailSchema, fieldErrors } from "@/lib/validation";
@@ -17,10 +18,6 @@ async function origin() {
   return `${proto}://${host}`;
 }
 
-/** Only allow same-site relative redirects after login. */
-function safeNext(next: unknown): string {
-  return typeof next === "string" && next.startsWith("/") && !next.startsWith("//") ? next : "/";
-}
 
 /** Every email link lands on /auth/confirm (the URL allow-listed in Supabase). */
 async function confirmUrl(next: string) {

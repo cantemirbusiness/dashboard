@@ -16,7 +16,7 @@ import { buildSkillInputs, hoursByMode, scoreSkill, type SkillInputs, type Skill
 
 // ---- Types -------------------------------------------------------------------
 
-export type SkillStatus = "improving" | "stable" | "stagnating" | "declining" | "needs_attention";
+export type SkillStatus = "not_started" | "improving" | "stable" | "stagnating" | "declining" | "needs_attention";
 
 export interface SkillAnalysis {
   skill: Skill;
@@ -31,6 +31,8 @@ export interface SkillAnalysis {
   statusReasons: string[];
   lastActivityOn: string | null;
   daysSinceActivity: number | null;
+  /** Days since the skill's "tracked since" date. */
+  trackedDays: number;
   hours90: { knowledge: number; practice: number; execution: number; total: number };
   hoursAll: { knowledge: number; practice: number; execution: number; total: number };
   evidence: Evidence[];
@@ -240,9 +242,16 @@ export function analyzeWorkspace(ws: Workspace): Analysis {
     const theoryHeavy = k >= STATUS.theoryKnowledgeMin && handsOn < k * STATUS.theoryHandsOnRatio;
 
     // Status — evaluated in this order; "needs attention" overrides the rest.
+    // A skill with no records that was only just added is "not started": it has
+    // had no chance to move yet, so flagging it would be noise, not insight.
+    const trackedDays = Math.max(0, daysBetween(skill.trackedSince, today));
+    const graceOver = trackedDays >= STATUS.neglectedAfterDays;
     const reasons: string[] = [];
     let status: SkillStatus;
-    if (delta30 <= STATUS.decliningDelta30) {
+    if (inp.items.length === 0 && !graceOver) {
+      status = "not_started";
+      reasons.push("No activity yet. Log your first session to start building this score.");
+    } else if (delta30 <= STATUS.decliningDelta30) {
       status = "declining";
       reasons.push(`Down ${Math.abs(delta30).toFixed(1)} over 30 days as recent activity fades.`);
     } else if (delta30 >= STATUS.improvingDelta30) {
@@ -261,10 +270,13 @@ export function analyzeWorkspace(ws: Workspace): Analysis {
     }
 
     const attention: string[] = [];
-    if (goalLinked && (status === "stagnating" || status === "declining")) {
+    if (status === "not_started") {
+      // Nothing to flag yet.
+    } else if (goalLinked && (status === "stagnating" || status === "declining")) {
       attention.push("It supports an active goal but is not moving.");
     }
     if (
+      graceOver &&
       current.score < STATUS.lowScore &&
       skill.targetScore - current.score >= STATUS.largeGap &&
       (daysSinceActivity == null || daysSinceActivity > 14)
@@ -297,6 +309,7 @@ export function analyzeWorkspace(ws: Workspace): Analysis {
       statusReasons: reasons,
       lastActivityOn,
       daysSinceActivity,
+      trackedDays,
       hours90,
       hoursAll,
       evidence,

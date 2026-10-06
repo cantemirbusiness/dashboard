@@ -54,7 +54,7 @@ export function DemoDataControls({ hasDemo }: { hasDemo: boolean }) {
     );
   }
   return (
-    <Button variant="secondary" loading={load.pending} disabled={readOnly} onClick={() => load.run(undefined)}>
+    <Button variant="secondary" loading={load.pending} disabled={readOnly} onClick={() => load.run({ timezone: Intl.DateTimeFormat().resolvedOptions().timeZone })}>
       Load demo data
     </Button>
   );

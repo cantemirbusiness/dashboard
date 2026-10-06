@@ -8,6 +8,7 @@ import { QuickAddButton } from "@/components/app/quick-add";
 import { ActivityList } from "@/components/progress/activity-list";
 import { ConsistencyCalendar, ConsistencyStats } from "@/components/progress/consistency";
 import { DimensionBars, imbalanceSentence } from "@/components/progress/dimension-bars";
+import { GettingStarted, gettingStartedSteps } from "@/components/progress/getting-started";
 import { GoalRow } from "@/components/progress/goal-row";
 import { NextActions } from "@/components/progress/next-actions";
 import { Delta, EmptyState, Panel, Section, Stat } from "@/components/ui/display";
@@ -26,6 +27,7 @@ export default async function OverviewPage() {
   const evidenceIds = new Set(ws.evidence.map((e) => e.activityId).filter((x): x is string => !!x));
   const imbalance = imbalanceSentence(a.dimensions.current);
   const name = ws.profile.displayName;
+  const setupSteps = gettingStartedSteps(ws);
 
   if (a.skills.length === 0) {
     return (
@@ -55,6 +57,8 @@ export default async function OverviewPage() {
           Log activity
         </QuickAddButton>
       </header>
+
+      {setupSteps ? <GettingStarted steps={setupSteps} /> : null}
 
       {/* Overall + next best action */}
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] lg:gap-10">
@@ -154,7 +158,9 @@ export default async function OverviewPage() {
               <p className="mt-1 text-[13px] text-muted">{attention.detail}</p>
             </Link>
           ) : (
-            <p className="text-[13px] text-muted">Nothing stands out — every tracked skill is moving.</p>
+            <p className="text-[13px] text-muted">
+              {ws.activities.length === 0 ? "Nothing to flag yet. Weak spots show up once you've logged some work." : "Nothing stands out — every tracked skill is moving."}
+            </p>
           )}
           {weaknesses.length > 1 ? (
             <Link href="/evolution#needs-work" className="mt-3 inline-flex items-center gap-1 text-[12px] text-faint hover:text-fg">

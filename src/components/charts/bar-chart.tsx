@@ -29,7 +29,19 @@ export function BarChart({
 
   return (
     <div ref={ref} className="relative w-full min-w-0" style={{ height }}>
-      <svg width={width} height={height} role="img" aria-label={ariaLabel} className="absolute inset-0" onPointerLeave={() => setHover(null)}>
+      <table className="sr-only">
+        <caption>{ariaLabel}</caption>
+        <tbody>
+          {bars.map((b, i) => (
+            <tr key={i}>
+              <th scope="row">{b.label}</th>
+              <td>{formatValue(b.value, format)}</td>
+              {b.detail ? <td>{b.detail}</td> : null}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <svg width={width} height={height} aria-hidden className="absolute inset-0" onPointerLeave={() => setHover(null)}>
         <line x1={0} x2={width} y1={m.top + ih} y2={m.top + ih} stroke="var(--grid)" />
         {bars.map((b, i) => {
           const h = (b.value / max) * ih;

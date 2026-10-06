@@ -225,3 +225,38 @@ describe("demo workspace", () => {
     expect(again.analysis.overall.score).toBe(r.analysis.overall.score);
   });
 });
+
+describe("fresh workspace", () => {
+  const fresh = (trackedSince: string, activities: Activity[] = []): Workspace => ({
+    profile: { id: "u", displayName: null, timezone: "UTC", weeklyHoursGoal: 10, onboardedAt: TODAY },
+    today: TODAY,
+    categories: [],
+    skills: [skill({ id: "s1", name: "Backend", trackedSince }), skill({ id: "s2", name: "Design", trackedSince })],
+    projects: [],
+    goals: [],
+    milestones: [],
+    activities,
+    evidence: [],
+    snapshots: [],
+    insightStates: [],
+  });
+
+  it("marks brand-new skills as not started instead of flagging them as weaknesses", () => {
+    const r = runEngine(fresh(TODAY));
+    expect(r.analysis.skills.map((s) => s.status)).toEqual(["not_started", "not_started"]);
+    expect(r.analysis.skills.every((s) => s.statusReasons.length === 1)).toBe(true);
+    expect(r.weaknesses).toEqual([]);
+  });
+
+  it("starts flagging skills that stay untouched past the grace period", () => {
+    const r = runEngine(fresh(addDays(TODAY, -60)));
+    expect(r.analysis.skills.some((s) => s.status === "not_started")).toBe(false);
+    expect(r.weaknesses.length).toBeGreaterThan(0);
+  });
+
+  it("leaves not-started once the first activity is logged", () => {
+    const r = runEngine(fresh(TODAY, [activity({ skillIds: ["s1"] })]));
+    expect(r.analysis.skills.find((s) => s.skill.id === "s1")!.status).not.toBe("not_started");
+    expect(r.analysis.skills.find((s) => s.skill.id === "s2")!.status).toBe("not_started");
+  });
+});

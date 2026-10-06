@@ -1,14 +1,14 @@
-import { ExternalLink, FileCheck2 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getEngine } from "@/lib/data/workspace";
 import { addDays, formatDate, maxIso, relativeDay } from "@/lib/dates";
 import { COMPONENTS, COMPONENT_SHARE, groupDrivers } from "@/lib/engine";
-import { COMPONENT_HINT, COMPONENT_LABEL, EVIDENCE_LABEL, categoryColor, fmtHours, fmtScore } from "@/lib/format";
+import { COMPONENT_HINT, COMPONENT_LABEL, categoryColor, fmtHours, fmtScore } from "@/lib/format";
 import { LineChart } from "@/components/charts/line-chart";
 import { QuickAddButton } from "@/components/app/quick-add";
-import { AddEvidenceButton, EditEvidenceButton } from "@/components/forms/evidence-form";
+import { AddEvidenceButton } from "@/components/forms/evidence-form";
 import { EditSkillButton } from "@/components/forms/skill-forms";
+import { EvidenceList } from "@/components/progress/evidence-list";
 import { ActivityList } from "@/components/progress/activity-list";
 import { Delta, EmptyState, Section, Stat, Tag } from "@/components/ui/display";
 import { GoalStatusBadge, ProjectStatusBadge, SkillStatusBadge } from "@/components/ui/status";
@@ -190,31 +190,7 @@ export default async function SkillPage({ params }: { params: Promise<{ id: stri
 
         <Section title="Evidence supporting this score" actions={<AddEvidenceButton skillId={id} />}>
           {s.evidence.length ? (
-            <ul className="divide-y divide-line border-y border-line">
-              {[...s.evidence]
-                .sort((x, y) => (x.occurredOn < y.occurredOn ? 1 : -1))
-                .map((e) => (
-                  <li key={e.id} className="flex items-start gap-3 py-2.5">
-                    <FileCheck2 size={15} className="mt-0.5 shrink-0 text-good" aria-hidden />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[14px] leading-snug">
-                        {e.url ? (
-                          <a href={e.url} target="_blank" rel="noopener noreferrer" className="hover:text-accent-strong">
-                            {e.title} <ExternalLink size={12} className="inline text-faint" aria-hidden />
-                          </a>
-                        ) : (
-                          e.title
-                        )}
-                      </p>
-                      <p className="text-[12px] text-faint">
-                        {EVIDENCE_LABEL[e.kind]}
-                        {e.assessmentScore != null ? ` · score ${e.assessmentScore}` : ""} · {formatDate(e.occurredOn, { year: true })}
-                      </p>
-                    </div>
-                    <EditEvidenceButton evidence={e} />
-                  </li>
-                ))}
-            </ul>
+            <EvidenceList items={s.evidence} />
           ) : (
             <EmptyState title="No evidence yet" className="py-6">
               Without evidence, this score rests on your starting level and logged time. Add a repo, deployment, assessment or write-up to make it trustworthy.

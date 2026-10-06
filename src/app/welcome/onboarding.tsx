@@ -17,7 +17,8 @@ export function Onboarding() {
     setWhich(kind);
     setError(null);
     start(async () => {
-      const res = kind === "demo" ? await loadDemoData() : await startFresh({ templates });
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const res = kind === "demo" ? await loadDemoData({ timezone }) : await startFresh({ templates, timezone });
       if (res && !res.ok) setError(res.error);
     });
   };

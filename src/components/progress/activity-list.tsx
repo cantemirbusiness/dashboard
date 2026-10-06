@@ -1,7 +1,7 @@
 "use client";
 
 import { FileCheck2, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Activity } from "@/lib/domain";
 import { deleteActivity } from "@/lib/actions/entities";
 import { formatDate, relativeDay } from "@/lib/dates";
@@ -86,10 +86,34 @@ function RowMenu({ activity }: { activity: Activity }) {
   const [confirm, setConfirm] = useState(false);
   const { run, pending } = useAction(deleteActivity, { success: "Activity deleted" });
   const readOnly = useAppData().readOnly;
+  const root = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+
+  // Close on Escape (returning focus to the trigger) or on a click outside.
+  useEffect(() => {
+    if (!menu) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setMenu(false);
+        trigger.current?.focus();
+      }
+    };
+    const onPointer = (e: PointerEvent) => {
+      if (!root.current?.contains(e.target as Node)) setMenu(false);
+    };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", onPointer);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", onPointer);
+    };
+  }, [menu]);
+
   if (readOnly) return null;
   return (
-    <div className="relative -mr-1.5 shrink-0">
+    <div ref={root} className="relative -mr-1.5 shrink-0">
       <button
+        ref={trigger}
         type="button"
         onClick={() => {
           setMenu((m) => !m);
@@ -104,7 +128,6 @@ function RowMenu({ activity }: { activity: Activity }) {
       {menu ? (
         <div
           className="absolute right-0 top-8 z-20 w-40 rounded-md border border-line-strong bg-panel-2 p-1 text-[13px] shadow-[var(--shadow)]"
-          onMouseLeave={() => !pending && setMenu(false)}
         >
           <button
             type="button"
