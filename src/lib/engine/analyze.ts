@@ -194,15 +194,14 @@ export function analyzeWorkspace(ws: Workspace): Analysis {
     return scoreAtRaw(inp, date).score;
   };
 
+  // Overall and dimensions always include every current skill; before a skill was
+  // tracked it counts at its baseline (the level you declared when you started).
+  // Otherwise adding a new skill would show up as a fake drop in the history.
   const overallAt = (date: string): number | null =>
-    weightedMean(
-      [...inputs.values()]
-        .filter((inp) => isTracked(inp, date))
-        .map((inp) => ({ value: scoreAtRaw(inp, date).score, weight: weightOf(inp.skill.id) })),
-    );
+    weightedMean([...inputs.values()].map((inp) => ({ value: scoreAtRaw(inp, date).score, weight: weightOf(inp.skill.id) })));
 
   const dimensionsAt = (date: string): Dimensions | null => {
-    const tracked = [...inputs.values()].filter((inp) => isTracked(inp, date));
+    const tracked = [...inputs.values()];
     if (tracked.length === 0) return null;
     const out = EMPTY_DIMS();
     for (const c of COMPONENTS) {
@@ -504,7 +503,12 @@ export function analyzeGoal(
     velocity30,
     projectedAtDeadline,
     daysLeft,
-    milestones: [...milestones].sort((a, b) => (a.dueOn ?? "9999") < (b.dueOn ?? "9999") ? -1 : 1),
+    // Achieved first (chronological), then open ones by due date.
+    milestones: [...milestones].sort((a, b) => {
+      const ka = a.achievedOn ? `0${a.achievedOn}` : `1${a.dueOn ?? "9999"}`;
+      const kb = b.achievedOn ? `0${b.achievedOn}` : `1${b.dueOn ?? "9999"}`;
+      return ka < kb ? -1 : ka > kb ? 1 : 0;
+    }),
     trajectory,
   };
 }
