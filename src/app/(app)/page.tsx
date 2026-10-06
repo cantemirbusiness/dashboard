@@ -11,7 +11,6 @@ import { DimensionBars, imbalanceSentence } from "@/components/progress/dimensio
 import { GoalRow } from "@/components/progress/goal-row";
 import { NextActions } from "@/components/progress/next-actions";
 import { Delta, EmptyState, Panel, Section, Stat } from "@/components/ui/display";
-import { SkillStatusBadge } from "@/components/ui/status";
 
 export const metadata = { title: "Overview" };
 
@@ -22,7 +21,6 @@ export default async function OverviewPage() {
   const { analysis: a, metrics: m, recommendations, improvements30, weaknesses } = engine;
   const top = improvements30[0];
   const attention = weaknesses.find((w) => w.kind !== "goal" && w.kind !== "inconsistent") ?? weaknesses[0];
-  const attentionSkill = attention?.key.includes(":") ? a.skillById.get(attention.key.split(":")[1]) : undefined;
   const activeGoals = a.goals.filter((g) => g.goal.state === "active").slice(0, 4);
   const recent = [...ws.activities].sort((x, y) => (x.occurredOn < y.occurredOn ? 1 : x.occurredOn > y.occurredOn ? -1 : y.createdAt.localeCompare(x.createdAt))).slice(0, 6);
   const evidenceIds = new Set(ws.evidence.map((e) => e.activityId).filter((x): x is string => !!x));
@@ -154,7 +152,6 @@ export default async function OverviewPage() {
                 {attention.score != null ? <span className="tabular ml-2 text-[14px] font-normal text-faint">{fmtScore(attention.score)} / 100</span> : null}
               </p>
               <p className="mt-1 text-[13px] text-muted">{attention.detail}</p>
-              {attentionSkill ? <SkillStatusBadge status={attentionSkill.status} className="mt-2" /> : null}
             </Link>
           ) : (
             <p className="text-[13px] text-muted">Nothing stands out — every tracked skill is moving.</p>

@@ -467,8 +467,8 @@ export function computeInsights(ws: Workspace, a: Analysis, recs: Recommendation
         key: `improve:${s.skill.id}:${month}`,
         category: "improvement",
         tone: "positive",
-        title: `${s.skill.name} improved ${Math.round(pct)}% over the last 30 days`,
-        body: `${fmt1(before)} → ${fmt1(s.score)} (${signed(s.delta30)}).` + (top ? ` Biggest driver: ${top.title}${top.count > 1 ? ` ×${top.count}` : ""} (+${fmt1(top.contribution)}).` : ""),
+        title: `${s.skill.name} improved ${fmt1(s.delta30)} points over the last 30 days`,
+        body: `${fmt1(before)} → ${fmt1(s.score)} (${Math.round(pct)}% higher).` + (top ? ` Biggest driver: ${top.title}${top.count > 1 ? ` ×${top.count}` : ""} (+${fmt1(top.contribution)}).` : ""),
         href: `/skills/${s.skill.id}`,
       });
     } else if (s.delta30 <= -1) {

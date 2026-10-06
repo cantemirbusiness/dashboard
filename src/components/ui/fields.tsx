@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, type ComponentProps, type ReactNode } from "react";
+import { useId, useState, type ComponentProps, type ReactNode } from "react";
 import { cn } from "./cn";
 
 const control =
@@ -139,6 +139,7 @@ export function ChipSelect({
   className,
   max,
   emptyText = "Nothing to choose yet.",
+  collapseAfter,
 }: {
   label: string;
   values: string[];
@@ -148,7 +149,12 @@ export function ChipSelect({
   className?: string;
   max?: number;
   emptyText?: string;
+  /** Show only the first N options (plus any selected) until expanded. */
+  collapseAfter?: number;
 }) {
+  const [expanded, setExpanded] = useState(false);
+  const collapsed = !!collapseAfter && !expanded && options.length > collapseAfter + 2;
+  const visible = collapsed ? options.filter((o, i) => i < collapseAfter! || values.includes(o.value)) : options;
   const toggle = (v: string) => {
     if (values.includes(v)) onChange(values.filter((x) => x !== v));
     else if (!max || values.length < max) onChange([...values, v]);
@@ -158,7 +164,7 @@ export function ChipSelect({
       <legend className="mb-1.5 text-[12px] font-medium uppercase tracking-wide text-faint">{label}</legend>
       {options.length === 0 ? <p className="text-[13px] text-faint">{emptyText}</p> : null}
       <div className="flex flex-wrap gap-1.5">
-        {options.map((o) => {
+        {visible.map((o) => {
           const on = values.includes(o.value);
           return (
             <button
@@ -175,6 +181,11 @@ export function ChipSelect({
             </button>
           );
         })}
+        {collapsed ? (
+          <button type="button" onClick={() => setExpanded(true)} className="rounded-full px-2.5 py-1 text-[13px] text-faint hover:text-fg">
+            +{options.length - visible.length} more
+          </button>
+        ) : null}
       </div>
       {error ? (
         <p className="mt-1.5 text-[12px] text-critical" role="alert">

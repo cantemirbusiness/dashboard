@@ -124,6 +124,7 @@ export function ActivityForm({ activity, onDone, presetSkillId, presetProjectId 
         options={skillOptions}
         onChange={setSkillIds}
         max={10}
+        collapseAfter={10}
         error={fieldErrors.skillIds}
         emptyText="Add skills on the Skills page to attribute progress."
       />

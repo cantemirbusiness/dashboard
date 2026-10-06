@@ -19,14 +19,16 @@ export function InsightCard({ insight, state }: { insight: Insight; state?: "dis
       <div className="min-w-0 flex-1">
         <p className="text-[14px] font-medium leading-snug">
           {state === "pinned" ? <Pin size={12} className="mr-1 inline text-accent" aria-label="Pinned" /> : null}
-          {insight.title}
+          {insight.href ? (
+            <Link href={insight.href} className="hover:text-accent-strong">
+              {insight.title}
+              <ArrowRight size={12} className="ml-1 inline text-faint" aria-hidden />
+            </Link>
+          ) : (
+            insight.title
+          )}
         </p>
         <p className="mt-0.5 text-[13px] text-muted">{insight.body}</p>
-        {insight.href ? (
-          <Link href={insight.href} className="mt-1 inline-flex items-center gap-1 text-[12px] text-faint hover:text-fg">
-            Details <ArrowRight size={11} />
-          </Link>
-        ) : null}
       </div>
       {!readOnly ? (
         <div className="flex shrink-0 items-start gap-0.5 opacity-100 sm:opacity-0 sm:transition-opacity sm:group-focus-within:opacity-100 sm:group-hover:opacity-100">
