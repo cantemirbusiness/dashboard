@@ -34,3 +34,18 @@ jobs:
           curl -sSL https://github.com/PostgREST/postgrest/releases/download/v12.2.3/postgrest-v12.2.3-linux-static-x64.tar.xz | tar xJ -C /usr/local/bin
       - name: Schema, RLS and data round-trip against Postgres + PostgREST
         run: PG_BIN=$(ls -d /usr/lib/postgresql/*/bin | sort -V | tail -1) npm run test:db
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install PostgREST
+        run: |
+          curl -sSL https://github.com/PostgREST/postgrest/releases/download/v12.2.3/postgrest-v12.2.3-linux-static-x64.tar.xz | tar xJ -C /usr/local/bin
+      - name: Auth + app journey against Supabase Auth, PostgREST and Postgres
+        run: PG_BIN=$(ls -d /usr/lib/postgresql/*/bin | sort -V | tail -1) CHROME_PATH=$(command -v google-chrome) KEEP_E2E_LOGS=1 npm run test:e2e
